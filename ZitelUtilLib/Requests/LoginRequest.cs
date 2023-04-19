@@ -1,7 +1,7 @@
 ﻿using ZitelUtilLib.Enums;
 using ZitelUtilLib.Requests;
 
-namespace ZitelUtilLib.Requestsک
+namespace ZitelUtilLib.Requests
 {
     internal class LoginRequest : ZitelRequest
     {

@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.Json;
 using ZitelUtilLib.Enums;
 using ZitelUtilLib.Requests;
-using ZitelUtilLib.Requestsک;
 using ZitelUtilLib.Responses;
 
 namespace ZitelUtilLib;
@@ -57,7 +56,7 @@ public class ZitelUtils
         var result = _client.Execute(request);
         var response = JsonSerializer.Deserialize<QueryFrequencyResponse>(result.Content!, _serializerOptions);
 
-        // in this case the LOCK_ONE_CELL command will not return the correct cell id and freuency so
+        // in this case the LOCK_ONE_CELL command will not return the correct cell id and frecuency so
         // i get the needed info with GET_LTE_STATUS command.
         if (response!.LockedStatus == "0") 
         {
