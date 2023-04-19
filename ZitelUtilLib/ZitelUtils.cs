@@ -52,16 +52,42 @@ public class ZitelUtils
     }
     public CellInfo GetCurrentCellInfo(string sessionId)
     {
-        var request = new RestRequest(_address,Method.Post);
+        var request = new RestRequest(_address, Method.Post);
         request.AddBody(new ZitelRequest(CommandCodes.LOCK_ONE_CELL, "QUERY", sessionId));
         var result = _client.Execute(request);
         var response = JsonSerializer.Deserialize<QueryFrequencyResponse>(result.Content!, _serializerOptions);
+
+        // in this case the LOCK_ONE_CELL command will not return the correct cell id and freuency so
+        // i get the needed info with GET_LTE_STATUS command.
+        if (response!.LockedStatus == "0") 
+        {
+            var lteStatus = GetLteStatus(sessionId);
+            response!.FreqPoint = lteStatus["EARFCN/ARFCN"];
+            response!.PhyCellId = lteStatus["Physical CellID"];
+        }
         return new CellInfo
         {
             Frequency = int.Parse(response!.FreqPoint),
             CellId = int.Parse(response!.PhyCellId),
             Locked = response!.LockedStatus == "1"
         };
+    }
+    private Dictionary<string, string> GetLteStatus(string sessionId)
+    {
+        var request = new RestRequest(_address, Method.Post);
+        request.AddBody(new ZitelRequest(CommandCodes.GET_LTE_STATUS, "POST", sessionId));
+        var result = _client.Execute(request);
+        var response = JsonSerializer.Deserialize<ZitelResponse>(result.Content!,_serializerOptions);
+
+        var finalResult = new Dictionary<string, string>();
+        foreach (var item in response!.Message.Split('$'))
+        {
+            var parts = item.Split('@');
+            var key = parts[0];
+            var value = parts[1];
+            finalResult.Add(key, value);
+        }
+        return finalResult;
     }
     public string Login(string username, string password)
     {
