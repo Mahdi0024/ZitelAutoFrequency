@@ -17,7 +17,7 @@ internal class SpeedtestWrapper
         {
             StartInfo = new ProcessStartInfo()
             {
-                Arguments = "--format jsonl",
+                Arguments = "--format jsonl --accept-license",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
@@ -30,10 +30,14 @@ internal class SpeedtestWrapper
         {
             var data = process.StandardOutput.ReadLine();
             if (data == null) continue;
-            var dataObj = JsonSerializer.Deserialize<SpeedtestOutput>(data!,new JsonSerializerOptions(JsonSerializerDefaults.Web));
-            if (dataObj!.Type == "ping")
-                continue;
-            if (dataObj.Type == "download")
+            var dataObj = JsonSerializer.Deserialize<SpeedtestOutput>(data!, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+            if (dataObj!.Type != "testStart" && dataObj!.Type != "ping" && dataObj!.Type != "download")
+            {
+                process.Kill();
+                throw new Exception("Speedtest failed!");
+            }
+
+            if (dataObj!.Type == "download")
             {
                 if (dataObj.Download.Progress >= 1)
                 {
